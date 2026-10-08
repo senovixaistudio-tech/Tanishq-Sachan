@@ -1,0 +1,115 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User profile and AI preference state",
+      "type": "object",
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "Unique user ID matching auth.uid"
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address"
+        },
+        "displayName": {
+          "type": "string",
+          "description": "Display name of the user"
+        },
+        "selectedModel": {
+          "type": "string",
+          "description": "Currently active ScenoviX AI model"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp via serverTimestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp via serverTimestamp"
+        }
+      },
+      "required": [
+        "userId",
+        "email",
+        "selectedModel",
+        "createdAt",
+        "updatedAt"
+      ]
+    },
+    "ChatMessage": {
+      "title": "ChatMessage",
+      "description": "A chat message exchanged between the user and ScenoviX AI",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique message ID"
+        },
+        "userId": {
+          "type": "string",
+          "description": "Owner user ID"
+        },
+        "sender": {
+          "type": "string",
+          "enum": ["USER", "AI"],
+          "description": "Sender indicator"
+        },
+        "text": {
+          "type": "string",
+          "description": "Content of the message"
+        },
+        "timestamp": {
+          "type": "string",
+          "description": "Formatted time representation"
+        },
+        "attachmentCount": {
+          "type": "integer",
+          "description": "Number of staged or attached files"
+        },
+        "tokenStats": {
+          "type": "string",
+          "description": "Token and latency analytics string"
+        },
+        "hasReasoning": {
+          "type": "boolean",
+          "description": "Whether AI neural reasoning trace is present"
+        },
+        "createdAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Creation timestamp via serverTimestamp"
+        },
+        "updatedAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Last update timestamp via serverTimestamp"
+        }
+      },
+      "required": [
+        "id",
+        "userId",
+        "sender",
+        "text",
+        "timestamp",
+        "attachmentCount",
+        "hasReasoning",
+        "createdAt",
+        "updatedAt"
+      ]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile and AI preferences document"
+    },
+    "/users/{userId}/messages/{messageId}": {
+      "schema": "ChatMessage",
+      "description": "Chat messages collection scoped to authenticated user"
+    }
+  }
+}

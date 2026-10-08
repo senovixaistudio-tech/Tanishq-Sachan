@@ -1,0 +1,18 @@
+<resources>
+    <string name="app_name">ScenoviX AI</string>
+    <string name="tagline">Think. Create. Understand.</string>
+    <string name="composer_hint">Ask ScenoviX anything or query attached files…</string>
+    <string name="upload_image">Upload Image</string>
+    <string name="upload_video">Upload Video</string>
+    <string name="upload_files">Upload Files</string>
+    <string name="camera_capture">Camera</string>
+    <string name="voice_input">Voice</string>
+    <string name="analyze_image">Analyze Image</string>
+    <string name="understand_video">Understand Video</string>
+    <string name="read_document">Read Document</string>
+    <string name="summarize">Summarize</string>
+    <string name="extract_data">Extract Data</string>
+    <string name="ask_about_file">Ask About File</string>
+    <string name="analyzing_state">Neural Analyzer Active</string>
+    <string name="drag_drop_hint">Drop files anywhere or tap + to attach</string>
+</resources>

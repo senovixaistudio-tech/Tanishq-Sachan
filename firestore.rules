@@ -1,0 +1,106 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Global default-deny catch-all
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    function isValidUserProfile(data) {
+      return data.userId is string && data.userId.size() <= 128 &&
+             data.email is string && data.email.size() <= 256 &&
+             (!('displayName' in data.keys()) || data.displayName == null || (data.displayName is string && data.displayName.size() <= 100)) &&
+             data.selectedModel is string && data.selectedModel.size() <= 64 &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    function isValidChatMessage(data) {
+      return data.id is string && data.id.size() <= 128 &&
+             data.userId is string && data.userId.size() <= 128 &&
+             data.sender in ['USER', 'AI'] &&
+             data.text is string && data.text.size() <= 50000 &&
+             data.timestamp is string && data.timestamp.size() <= 64 &&
+             data.attachmentCount is int && data.attachmentCount >= 0 && data.attachmentCount <= 50 &&
+             (!('tokenStats' in data.keys()) || data.tokenStats == null || (data.tokenStats is string && data.tokenStats.size() <= 256)) &&
+             data.hasReasoning is bool &&
+             data.createdAt is timestamp && data.createdAt <= request.time &&
+             data.updatedAt is timestamp && data.updatedAt <= request.time;
+    }
+
+    // Users collection and profiles
+    match /users/{userId} {
+      allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+      allow list: if false;
+
+      allow create: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().userId == userId &&
+                       incoming().createdAt is timestamp &&
+                       incoming().createdAt <= request.time &&
+                       incoming().keys().hasAll(['userId', 'email', 'selectedModel', 'createdAt', 'updatedAt']) &&
+                       incoming().keys().hasOnly(['userId', 'email', 'displayName', 'selectedModel', 'createdAt', 'updatedAt']) &&
+                       isValidUserProfile(incoming());
+
+      allow update: if isSignedIn() &&
+                       request.auth.uid == userId &&
+                       isValidId(userId) &&
+                       incoming().userId == existing().userId &&
+                       incoming().createdAt == existing().createdAt &&
+                       incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'selectedModel', 'updatedAt']) &&
+                       isValidUserProfile(incoming());
+
+      allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+
+      // Scoped Chat Messages Subcollection
+      match /messages/{messageId} {
+        allow get: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(messageId);
+        allow list: if isSignedIn() && request.auth.uid == userId && isValidId(userId);
+
+        allow create: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(messageId) &&
+                         incoming().userId == userId &&
+                         incoming().id == messageId &&
+                         incoming().createdAt is timestamp &&
+                         incoming().createdAt <= request.time &&
+                         incoming().keys().hasAll(['id', 'userId', 'sender', 'text', 'timestamp', 'attachmentCount', 'hasReasoning', 'createdAt', 'updatedAt']) &&
+                         incoming().keys().hasOnly(['id', 'userId', 'sender', 'text', 'timestamp', 'attachmentCount', 'tokenStats', 'hasReasoning', 'createdAt', 'updatedAt']) &&
+                         isValidChatMessage(incoming());
+
+        allow update: if isSignedIn() &&
+                         request.auth.uid == userId &&
+                         isValidId(userId) &&
+                         isValidId(messageId) &&
+                         incoming().userId == existing().userId &&
+                         incoming().id == existing().id &&
+                         incoming().createdAt == existing().createdAt &&
+                         incoming().diff(existing()).affectedKeys().hasOnly(['text', 'tokenStats', 'hasReasoning', 'updatedAt']) &&
+                         isValidChatMessage(incoming());
+
+        allow delete: if isSignedIn() && request.auth.uid == userId && isValidId(userId) && isValidId(messageId);
+      }
+    }
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "ScenoviX AI",
+  "description": "Futuristic dark-cinematic AI chat with multimodal attachments, real-time file analysis, and intelligent reasoning.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
